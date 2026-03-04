@@ -72,7 +72,7 @@ static decimal CCreateSolvingTree(string input, string[] operations, List<(int? 
                     null,
                     null,
                     SolvingTree.Find(p => p.index == 0).expression[(CFindIndexes(operations, SolvingTree.Find(p => p.index == 0).expression).index + 1)..],
-                    null));
+                    null)); 
                 SolvingTree[0] = SolvingTree[0] with { children2 = SolvingTree.Max(i => i.index) };
             }
 
