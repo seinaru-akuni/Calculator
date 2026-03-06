@@ -3,26 +3,28 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-Calculator("--((3-7)**2+(-2.5*4)**(1+1))/(2**3**2)+-(-3.5*--2)**2");//24
+Calculator("(2-7**-1)");//24
+//(--((3-7)**2+(-2,5*4)**(1+1))/(2**3**2)+-(-3,5*--2)**2)
 static void Calculator(string input)
 {
+    input = RemoveBreckets(input);
     //array ordered by priority operations
     string[] operations = { "(", ")", "", "", "*", "/", "+", "-" };
 
-    List<(int parent,
+    List < (int parent,
           int operation,
           int index,
           int children1,
           int children2,
           string expression,
-          int  volume)> SolvingTree = new List<(int parent, int operation, int index, int children1, int children2, string expression, int volume)> { };
+          decimal? volume)> SolvingTree = new List<(int parent, int operation, int index, int children1, int children2, string expression, decimal? volume)> { };
 
-    CCreateSolvingTree(input, operations, SolvingTree);
+    Console.WriteLine(CCreateSolvingTree(input, operations, SolvingTree));
     //Console.WriteLine(CFindIndexes(operations, input));
 
 }
 
-static decimal CCreateSolvingTree(string input, string[] operations, List<(int parent, int operation, int index, int children1, int children2, string expression, int volume)> SolvingTree)
+static decimal CCreateSolvingTree(string input, string[] operations, List<(int parent, int operation, int index, int children1, int children2, string expression, decimal? volume)> SolvingTree)
 {
     decimal result = 0;
     int numberOfIndexes = CFindIndexes(operations, input).numberOfIndexes;
@@ -41,7 +43,7 @@ static decimal CCreateSolvingTree(string input, string[] operations, List<(int p
                 -1,
                 -1,
                 RemoveBreckets(input),
-                -1));
+                null));
         }
             if (weekestOperationPriority != 3)
             {
@@ -63,7 +65,7 @@ static decimal CCreateSolvingTree(string input, string[] operations, List<(int p
             -1,
             -1,
             RemoveBreckets(leftExpression),
-            -1));
+            null));
             SolvingTree[parentIndex] = SolvingTree[parentIndex] with { children1 = SolvingTree.Max(i => i.index) };
 
             SolvingTree.Add((
@@ -73,7 +75,7 @@ static decimal CCreateSolvingTree(string input, string[] operations, List<(int p
                 -1,
                 -1,
                 RemoveBreckets(rightExpression),
-                -1));
+                null));
             SolvingTree[parentIndex] = SolvingTree[parentIndex] with { children2 = SolvingTree.Max(i => i.index) };
             
                 
@@ -96,7 +98,7 @@ static decimal CCreateSolvingTree(string input, string[] operations, List<(int p
                     -1,
                     -1,
                     RemoveBreckets(rightExpression),
-                    -1));
+                    null));
                 SolvingTree[parentIndex] = SolvingTree[parentIndex] with { children1 = SolvingTree.Max(i => i.index) };
             }
 
@@ -107,7 +109,54 @@ static decimal CCreateSolvingTree(string input, string[] operations, List<(int p
         Console.WriteLine($"parent: {item.parent}, operation: {item.operation}, index: {item.index}, children1: {item.children1}, children2: {item.children2}, expression: {item.expression}, volume: {item.volume}");
     }
 
-    return 0;
+    while (SolvingTree[0].volume is null)
+    {
+        int indexToSolve = SolvingTree.Where(i => i.volume is null).Max(i => i.index);
+        if (SolvingTree[indexToSolve].children1 == -1)
+        {
+            SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = Convert.ToDecimal((SolvingTree[indexToSolve].expression)) };
+            continue;
+        }
+        else
+        {
+
+
+
+            if (SolvingTree[indexToSolve].operation != 3)
+            {
+                decimal value1 = SolvingTree[SolvingTree[indexToSolve].children1].volume ?? 0;
+                decimal value2 = SolvingTree[SolvingTree[indexToSolve].children2].volume ?? 0;
+
+                switch (SolvingTree[indexToSolve].operation)
+                {
+                    case 2:
+                        SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = (decimal)Math.Pow((double)value1, (double)value2) };
+                        break;
+                    case 4:
+                        SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = value1 * value2 };
+                        break;
+                    case 5:
+                        SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = value1 / value2 };
+                        break;
+                    case 6:
+                        SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = value1 + value2 };
+                        break;
+                    case 7:
+                        SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = value1 - value2 };
+                        break;
+
+                }
+            }
+            else
+            {
+                decimal value1 = SolvingTree[SolvingTree[indexToSolve].children1].volume ?? 0;
+                SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = -value1 };
+            }
+
+        }
+    }
+
+    return SolvingTree[0].volume ?? 000;
 }
 
 //here we are getting index of operations and operations type
