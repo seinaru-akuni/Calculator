@@ -3,8 +3,11 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-Calculator("(2-7**-1)");//24
+Calculator("-(-((--((3,2*--5)**(2+--4)/(--((-1,5)**(3-1)+--(-2,7*--1,2))))+((--5,1**-(2+3)-(-(-6,3)**2))/((3**(2**3))-(-4,5*--1,7)**(3-2))))+(((--7,4*--2)**-(--3+2)/(((-2**2+--3,3)*(-1,5))**2))-(--(2,5+--1,2)**(3-(-2))+((--4,1*--3)**-(1+2)/((-3,5)**(2+1)+--(-1,2*--2)))))))");//24
 //(--((3-7)**2+(-2,5*4)**(1+1))/(2**3**2)+-(-3,5*--2)**2)
+//+(((--6,1*2)**-(1+3)-(-(-4)**2))/((2**(3**2))-(-5,5*--2)**(2-3))))
+/// ((-2,5)**(1+2)+--(-3,2*--5))
+// -(-((4+--7*2)**(3-1)))
 static void Calculator(string input)
 {
     input = RemoveBreckets(input);
@@ -17,14 +20,14 @@ static void Calculator(string input)
           int children1,
           int children2,
           string expression,
-          decimal? volume)> SolvingTree = new List<(int parent, int operation, int index, int children1, int children2, string expression, decimal? volume)> { };
+          double? volume)> SolvingTree = new List<(int parent, int operation, int index, int children1, int children2, string expression, double? volume)> { };
 
     Console.WriteLine(CCreateSolvingTree(input, operations, SolvingTree));
     //Console.WriteLine(CFindIndexes(operations, input));
 
 }
 
-static decimal CCreateSolvingTree(string input, string[] operations, List<(int parent, int operation, int index, int children1, int children2, string expression, decimal? volume)> SolvingTree)
+static /*decimal*/double CCreateSolvingTree(string input, string[] operations, List<(int parent, int operation, int index, int children1, int children2, string expression, double? volume)> SolvingTree)
 {
     decimal result = 0;
     int numberOfIndexes = CFindIndexes(operations, input).numberOfIndexes;
@@ -104,17 +107,13 @@ static decimal CCreateSolvingTree(string input, string[] operations, List<(int p
 
     }
 
-    foreach (var item in SolvingTree)
-    {
-        Console.WriteLine($"parent: {item.parent}, operation: {item.operation}, index: {item.index}, children1: {item.children1}, children2: {item.children2}, expression: {item.expression}, volume: {item.volume}");
-    }
 
     while (SolvingTree[0].volume is null)
     {
         int indexToSolve = SolvingTree.Where(i => i.volume is null).Max(i => i.index);
         if (SolvingTree[indexToSolve].children1 == -1)
         {
-            SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = Convert.ToDecimal((SolvingTree[indexToSolve].expression)) };
+            SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = Convert./*ToDecimal*/ToDouble((SolvingTree[indexToSolve].expression)) };
             continue;
         }
         else
@@ -124,13 +123,13 @@ static decimal CCreateSolvingTree(string input, string[] operations, List<(int p
 
             if (SolvingTree[indexToSolve].operation != 3)
             {
-                decimal value1 = SolvingTree[SolvingTree[indexToSolve].children1].volume ?? 0;
-                decimal value2 = SolvingTree[SolvingTree[indexToSolve].children2].volume ?? 0;
+                /*decimal*/double value1 = SolvingTree[SolvingTree[indexToSolve].children1].volume ?? 0;
+                /*decimal*/double value2 = SolvingTree[SolvingTree[indexToSolve].children2].volume ?? 0;
 
                 switch (SolvingTree[indexToSolve].operation)
                 {
                     case 2:
-                        SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = (decimal)Math.Pow((double)value1, (double)value2) };
+                        SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = /*(decimal)*/Math.Pow((double)value1, (double)value2) };
                         break;
                     case 4:
                         SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = value1 * value2 };
@@ -149,11 +148,15 @@ static decimal CCreateSolvingTree(string input, string[] operations, List<(int p
             }
             else
             {
-                decimal value1 = SolvingTree[SolvingTree[indexToSolve].children1].volume ?? 0;
+                /*decimal*/double value1 = SolvingTree[SolvingTree[indexToSolve].children1].volume ?? 0;
                 SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = -value1 };
             }
 
         }
+    }
+    foreach (var item in SolvingTree)
+    {
+        Console.WriteLine($"parent: {item.parent}, operation: {item.operation}, index: {item.index}, children1: {item.children1}, children2: {item.children2}, expression: {item.expression}, volume: {item.volume}");
     }
 
     return SolvingTree[0].volume ?? 000;
@@ -320,8 +323,27 @@ static (int index, int priority) CGetTheWeekestOperation(List<(int index, int pr
     }
 
     operationsIndexNew = operationsIndexNew.OrderByDescending(op => op.priority).ToList();
-    //List<(int index, int priority)> operationsIndexNewToReturn = operationsIndexNew.ToList();
-    //operationsIndexNewToReturn.RemoveAll(op => op.index != operationsIndexNew[0].index);
-    return (operationsIndexNew[0].index, operationsIndexNew[0].priority);
+
+    if (operationsIndexNew[0].priority == -1 || operationsIndexNew.Count() == 1 || operationsIndexNew[0].index == operationsIndexNew.Min(i => i.index) )
+    {
+        return (operationsIndexNew[0].index, operationsIndexNew[0].priority);
+    }
+    else
+    {
+        int nextIndex = operationsIndexNew.Where(t => t.index < operationsIndexNew[0].index)
+        .Max(t => t.index);
+        int nextPriority = operationsIndexNew.First(i => i.index == operationsIndexNew.Where(t => t.index < operationsIndexNew[0].index)
+        .Max(t => t.index)).priority;
+        if (nextPriority == 2 && operationsIndexNew[0].priority == 3)
+        {
+            return (operationsIndexNew.First(i => i.index == operationsIndexNew.Where(t => t.index < operationsIndexNew[0].index).Max(t => t.index)).index, operationsIndexNew.First(i => i.index == operationsIndexNew.Where(t => t.index < operationsIndexNew[0].index).Max(t => t.index)).priority);
+        }
+        else
+        {
+            return (operationsIndexNew[0].index, operationsIndexNew[0].priority);
+        }
+    }
+
+    //return (operationsIndexNew[0].index, operationsIndexNew[0].priority);
 
 }
