@@ -3,7 +3,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-Calculator("-(-((--((2,3*--4)**(3+--2)/(--((-1,2)**(2-1)+--(-3,1*--2))))+((--6,2**-(1+2)-(-(-5,4)**3))/((4**(2**2))-(-3,3*--2,1)**(2-1))))+(((--8,1*--3)**-(--2+1)/(((-3**2+--2,2)*(-2,1))**3))-(--(3,4+--2,1)**(2-(-1))+((--5,3*--2)**-(2+1)/((-2,4)**(1+2)+--(-2,1*--3)))))))");
+Calculator("-(-((--(5,3*--2)**(1+--4)/((--(-3,2)**(2+1)+--(-1,7*--2)))+((--6,2**-(3+2)-(-(-4,5)**3))/((4**(2**3))-(-5,1*--3,2)**(2-1))))+(((--7,3*--1)**-(--2+3)/(((-3**2+--2,4)*(-1,3))**2))-(--(3,7+--2,1)**(2-(-1))+((--5,2*--4)**-(2+3)/((-4,1)**(3+1)+--(-2,3*--1))))))+(-(-((--2,3*--5)**(3+2)/((--(-1,5)**(2-1)+--(-3,2*--2)))+((--4,2**-(1+3)-(-(-6,1)**2))/((3**(2**2))-(-2,5*--1,3)**(3-2)))))))");
+//Console.WriteLine(RemoveBreckets("(((((2+2)))))"));
 static void Calculator(string input)
 {
     input = RemoveBreckets(input);
@@ -22,14 +23,13 @@ static void Calculator(string input)
 
 }
 
-static double CCreateSolvingTree(string input, string[] operations, List<(int parent, int operation, int index, int children1, int children2, string expression, double? volume)> SolvingTree)
-{
+static double CCreateSolvingTree(string input, string[] operations, List<(int parent, int operation, int index, int children1, int children2, string expression, double? volume)> SolvingTree){
     int numberOfIndexes = CFindIndexes(operations, input).numberOfIndexes;
 
     while (SolvingTree.Where(op => op.operation != -1 && op.children1 != -1).Count() < numberOfIndexes) 
     {
-        int weekestOperationIndex = CGetTheWeekestOperation(CFindIndexes(operations, SolvingTree.Count == 0 ? input : (SolvingTree.Find(i => i.index == SolvingTree.Where(p => p.operation != -1 && p.children1 == -1).Max(j => j.index)).expression)).indexAndPriority).index;
-        int weekestOperationPriority = CGetTheWeekestOperation(CFindIndexes(operations, SolvingTree.Count == 0 ? input : (SolvingTree.Find(i => i.index == (SolvingTree.Where(p => p.operation != -1 && p.children1 == -1).Max(j => j.index))).expression)).indexAndPriority).priority;
+        int weekestOperationIndex = CGetTheWeekestOperation(CFindIndexes(operations, SolvingTree.Count == 0 ? input : RemoveBreckets(SolvingTree.Find(i => i.index == SolvingTree.Where(p => p.operation != -1 && p.children1 == -1).Max(j => j.index)).expression)).indexAndPriority).index;
+        int weekestOperationPriority = CGetTheWeekestOperation(CFindIndexes(operations, SolvingTree.Count == 0 ? input : RemoveBreckets(SolvingTree.Find(i => i.index == (SolvingTree.Where(p => p.operation != -1 && p.children1 == -1).Max(j => j.index))).expression)).indexAndPriority).priority;
         if (SolvingTree.Count == 0)
         {
             SolvingTree.Add((
@@ -54,7 +54,7 @@ static double CCreateSolvingTree(string input, string[] operations, List<(int pa
 
             SolvingTree.Add((
             parentIndex,
-            CGetTheWeekestOperation(CFindIndexes(operations, leftExpression).indexAndPriority).priority,
+            CGetTheWeekestOperation(CFindIndexes(operations, RemoveBreckets(leftExpression)).indexAndPriority).priority,
             SolvingTree.Max(i => i.index) + 1,
             -1,
             -1,
@@ -64,7 +64,7 @@ static double CCreateSolvingTree(string input, string[] operations, List<(int pa
 
             SolvingTree.Add((
                 parentIndex,
-                CGetTheWeekestOperation(CFindIndexes(operations, rightExpression).indexAndPriority).priority,
+                CGetTheWeekestOperation(CFindIndexes(operations, RemoveBreckets(rightExpression)).indexAndPriority).priority,
                 SolvingTree.Max(i => i.index) + 1,
                 -1,
                 -1,
@@ -87,7 +87,7 @@ static double CCreateSolvingTree(string input, string[] operations, List<(int pa
 
                 SolvingTree.Add((
                     parentIndex,
-                    CGetTheWeekestOperation(CFindIndexes(operations, rightExpression).indexAndPriority).priority,
+                    CGetTheWeekestOperation(CFindIndexes(operations, RemoveBreckets(rightExpression)).indexAndPriority).priority,
                     SolvingTree.Max(i => i.index) + 1,
                     -1,
                     -1,
@@ -243,7 +243,11 @@ static string RemoveBreckets(string input)
             {
                 if (i == input.Length - 1)
                 {
-                    return input.Substring(1, input.Length - 2);
+                    input = input.Substring(1, input.Length - 2);
+                    if (input[0] == '(' && input[input.Length - 1] == ')')
+                    {
+                        input = RemoveBreckets(input);
+                    }
                 }
                 else
                 {
@@ -312,7 +316,14 @@ static (int index, int priority) CGetTheWeekestOperation(List<(int index, int pr
 
     operationsIndexNew = operationsIndexNew.OrderByDescending(op => op.priority).ToList();
 
-    if (operationsIndexNew[0].priority == -1 || operationsIndexNew.Count() == 1 || operationsIndexNew[0].index == operationsIndexNew.Min(i => i.index) )
+    if ((operationsIndexNew[0].priority == 6 || operationsIndexNew[0].priority == 7))
+    {
+        int firstIndex = operationsIndexNew.Where(t => t.priority == 7 || t.priority == 6).Max(t => t.index);
+        int newPriority = operationsIndexNew.First(i => i.index == firstIndex).priority;
+        return (firstIndex, newPriority);
+    }
+
+    if (operationsIndexNew[0].priority == -1 || operationsIndexNew.Count() == 1 || operationsIndexNew[0].index == operationsIndexNew.Min(i => i.index))
     {
         return (operationsIndexNew[0].index, operationsIndexNew[0].priority);
     }
@@ -331,5 +342,6 @@ static (int index, int priority) CGetTheWeekestOperation(List<(int index, int pr
             return (operationsIndexNew[0].index, operationsIndexNew[0].priority);
         }
     }
+
 
 }
