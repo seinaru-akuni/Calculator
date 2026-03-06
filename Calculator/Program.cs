@@ -3,11 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-Calculator("-(-((--((3,2*--5)**(2+--4)/(--((-1,5)**(3-1)+--(-2,7*--1,2))))+((--5,1**-(2+3)-(-(-6,3)**2))/((3**(2**3))-(-4,5*--1,7)**(3-2))))+(((--7,4*--2)**-(--3+2)/(((-2**2+--3,3)*(-1,5))**2))-(--(2,5+--1,2)**(3-(-2))+((--4,1*--3)**-(1+2)/((-3,5)**(2+1)+--(-1,2*--2)))))))");//24
-//(--((3-7)**2+(-2,5*4)**(1+1))/(2**3**2)+-(-3,5*--2)**2)
-//+(((--6,1*2)**-(1+3)-(-(-4)**2))/((2**(3**2))-(-5,5*--2)**(2-3))))
-/// ((-2,5)**(1+2)+--(-3,2*--5))
-// -(-((4+--7*2)**(3-1)))
+Calculator("-(-((--((2,3*--4)**(3+--2)/(--((-1,2)**(2-1)+--(-3,1*--2))))+((--6,2**-(1+2)-(-(-5,4)**3))/((4**(2**2))-(-3,3*--2,1)**(2-1))))+(((--8,1*--3)**-(--2+1)/(((-3**2+--2,2)*(-2,1))**3))-(--(3,4+--2,1)**(2-(-1))+((--5,3*--2)**-(2+1)/((-2,4)**(1+2)+--(-2,1*--3)))))))");
 static void Calculator(string input)
 {
     input = RemoveBreckets(input);
@@ -23,17 +19,14 @@ static void Calculator(string input)
           double? volume)> SolvingTree = new List<(int parent, int operation, int index, int children1, int children2, string expression, double? volume)> { };
 
     Console.WriteLine(CCreateSolvingTree(input, operations, SolvingTree));
-    //Console.WriteLine(CFindIndexes(operations, input));
 
 }
 
-static /*decimal*/double CCreateSolvingTree(string input, string[] operations, List<(int parent, int operation, int index, int children1, int children2, string expression, double? volume)> SolvingTree)
+static double CCreateSolvingTree(string input, string[] operations, List<(int parent, int operation, int index, int children1, int children2, string expression, double? volume)> SolvingTree)
 {
-    decimal result = 0;
     int numberOfIndexes = CFindIndexes(operations, input).numberOfIndexes;
-    //var list = CFindIndexes(operations, input);
 
-    while (SolvingTree.Where(op => op.operation != -1 && op.children1 != -1).Count() < numberOfIndexes) //|| SolvingTree.Count == 0
+    while (SolvingTree.Where(op => op.operation != -1 && op.children1 != -1).Count() < numberOfIndexes) 
     {
         int weekestOperationIndex = CGetTheWeekestOperation(CFindIndexes(operations, SolvingTree.Count == 0 ? input : (SolvingTree.Find(i => i.index == SolvingTree.Where(p => p.operation != -1 && p.children1 == -1).Max(j => j.index)).expression)).indexAndPriority).index;
         int weekestOperationPriority = CGetTheWeekestOperation(CFindIndexes(operations, SolvingTree.Count == 0 ? input : (SolvingTree.Find(i => i.index == (SolvingTree.Where(p => p.operation != -1 && p.children1 == -1).Max(j => j.index))).expression)).indexAndPriority).priority;
@@ -52,8 +45,6 @@ static /*decimal*/double CCreateSolvingTree(string input, string[] operations, L
             {
             int parentIndex = SolvingTree
             .Where(i => i.operation != -1 && i.children1 == -1).Max(i => i.index);
-            //.Select(i => i.index)
-            //.DefaultIfEmpty(0)
 
             string parentExpression = SolvingTree
                 .First(i => i.index == parentIndex)
@@ -113,7 +104,7 @@ static /*decimal*/double CCreateSolvingTree(string input, string[] operations, L
         int indexToSolve = SolvingTree.Where(i => i.volume is null).Max(i => i.index);
         if (SolvingTree[indexToSolve].children1 == -1)
         {
-            SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = Convert./*ToDecimal*/ToDouble((SolvingTree[indexToSolve].expression)) };
+            SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = Convert.ToDouble((SolvingTree[indexToSolve].expression)) };
             continue;
         }
         else
@@ -123,13 +114,13 @@ static /*decimal*/double CCreateSolvingTree(string input, string[] operations, L
 
             if (SolvingTree[indexToSolve].operation != 3)
             {
-                /*decimal*/double value1 = SolvingTree[SolvingTree[indexToSolve].children1].volume ?? 0;
-                /*decimal*/double value2 = SolvingTree[SolvingTree[indexToSolve].children2].volume ?? 0;
+                double value1 = SolvingTree[SolvingTree[indexToSolve].children1].volume ?? 0;
+                double value2 = SolvingTree[SolvingTree[indexToSolve].children2].volume ?? 0;
 
                 switch (SolvingTree[indexToSolve].operation)
                 {
                     case 2:
-                        SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = /*(decimal)*/Math.Pow((double)value1, (double)value2) };
+                        SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = Math.Pow((double)value1, (double)value2) };
                         break;
                     case 4:
                         SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = value1 * value2 };
@@ -148,7 +139,7 @@ static /*decimal*/double CCreateSolvingTree(string input, string[] operations, L
             }
             else
             {
-                /*decimal*/double value1 = SolvingTree[SolvingTree[indexToSolve].children1].volume ?? 0;
+                double value1 = SolvingTree[SolvingTree[indexToSolve].children1].volume ?? 0;
                 SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = -value1 };
             }
 
@@ -221,9 +212,6 @@ static (List<(int index, int priority)> indexAndPriority, int numberOfIndexes) C
 
     if (operationsIndex.Count > 0)
     {
-        //operationsIndex.Sort((a, b) => a.priority.CompareTo(b.priority));
-        //int operationIndex = operationsIndex[0].index;
-        //int operationPriority = operationsIndex[0].priority;
         int numberOfIndexes = operationsIndex.Where(i => i.priority != 0 && i.priority != 1).Count();
 
         return (operationsIndex, numberOfIndexes);
@@ -250,7 +238,7 @@ static string RemoveBreckets(string input)
             if (input[i] == '(') countOpen++;
             if (input[i] == ')') countOpen--;
 
-            // Якщо всі дужки збалансовані на кінці рядка
+
             if (countOpen == 0)
             {
                 if (i == input.Length - 1)
@@ -343,7 +331,5 @@ static (int index, int priority) CGetTheWeekestOperation(List<(int index, int pr
             return (operationsIndexNew[0].index, operationsIndexNew[0].priority);
         }
     }
-
-    //return (operationsIndexNew[0].index, operationsIndexNew[0].priority);
 
 }
