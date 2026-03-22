@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-Calculator("-(-((--(5,3*--2)**(1+--4)/((--(-3,2)**(2+1)+--(-1,7*--2)))+((--6,2**-(3+2)-(-(-4,5)**3))/((4**(2**3))-(-5,1*--3,2)**(2-1))))+(((--7,3*--1)**-(--2+3)/(((-3**2+--2,4)*(-1,3))**2))-(--(3,7+--2,1)**(2-(-1))+((--5,2*--4)**-(2+3)/((-4,1)**(3+1)+--(-2,3*--1))))))+(-(-((--2,3*--5)**(3+2)/((--(-1,5)**(2-1)+--(-3,2*--2)))+((--4,2**-(1+3)-(-(-6,1)**2))/((3**(2**2))-(-2,5*--1,3)**(3-2)))))))");
+Calculator("-(-((--(7,2*--3)**(2+--4)/((--(-3,5)**2+--(-1,7*--2)))+((--5,1**-(-3+2)-(-6,2**3))/((4**(2**3))-(-5,3*--2,1)**(2-1))))+(((--6,8*--1)**-(--2+3)/(((-3**2+--2,4)*(-1,3))**2))-(--(3,7+--2,1)**(2-(-1))+((--5,2*--4)**-(2+3)/((-4,1)**(3+1)+--(-2,3*--1))))))+(-(-((--2,3*--5)**(3+2)/((--(-1,5)**(2-1)+--(-3,2*--2)))+((--4,2**-(1+3)-(-(-6,1)**2))/((3**(2**2))-(-2,5*--1,3)**(3-2)))))))");
 //Console.WriteLine(RemoveBreckets("(((((2+2)))))"));
 static void Calculator(string input)
 {
@@ -17,13 +17,13 @@ static void Calculator(string input)
           int children1,
           int children2,
           string expression,
-          double? volume)> SolvingTree = new List<(int parent, int operation, int index, int children1, int children2, string expression, double? volume)> { };
+          double? value)> SolvingTree = new List<(int parent, int operation, int index, int children1, int children2, string expression, double? value)> { };
 
     Console.WriteLine(CCreateSolvingTree(input, operations, SolvingTree));
 
 }
 
-static double CCreateSolvingTree(string input, string[] operations, List<(int parent, int operation, int index, int children1, int children2, string expression, double? volume)> SolvingTree){
+static double CCreateSolvingTree(string input, string[] operations, List<(int parent, int operation, int index, int children1, int children2, string expression, double? value)> SolvingTree){
     int numberOfIndexes = CFindIndexes(operations, input).numberOfIndexes;
 
     while (SolvingTree.Where(op => op.operation != -1 && op.children1 != -1).Count() < numberOfIndexes) 
@@ -99,12 +99,12 @@ static double CCreateSolvingTree(string input, string[] operations, List<(int pa
     }
 
 
-    while (SolvingTree[0].volume is null)
+    while (SolvingTree[0].value is null)
     {
-        int indexToSolve = SolvingTree.Where(i => i.volume is null).Max(i => i.index);
+        int indexToSolve = SolvingTree.Where(i => i.value is null).Max(i => i.index);
         if (SolvingTree[indexToSolve].children1 == -1)
         {
-            SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = Convert.ToDouble((SolvingTree[indexToSolve].expression)) };
+            SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { value = Convert.ToDouble((SolvingTree[indexToSolve].expression)) };
             continue;
         }
         else
@@ -114,43 +114,43 @@ static double CCreateSolvingTree(string input, string[] operations, List<(int pa
 
             if (SolvingTree[indexToSolve].operation != 3)
             {
-                double value1 = SolvingTree[SolvingTree[indexToSolve].children1].volume ?? 0;
-                double value2 = SolvingTree[SolvingTree[indexToSolve].children2].volume ?? 0;
+                double value1 = SolvingTree[SolvingTree[indexToSolve].children1].value ?? 0;
+                double value2 = SolvingTree[SolvingTree[indexToSolve].children2].value ?? 0;
 
                 switch (SolvingTree[indexToSolve].operation)
                 {
                     case 2:
-                        SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = Math.Pow((double)value1, (double)value2) };
+                        SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { value = Math.Pow((double)value1, (double)value2) };
                         break;
                     case 4:
-                        SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = value1 * value2 };
+                        SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { value= value1 * value2 };
                         break;
                     case 5:
-                        SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = value1 / value2 };
+                        SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { value = value1 / value2 };
                         break;
                     case 6:
-                        SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = value1 + value2 };
+                        SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { value = value1 + value2 };
                         break;
                     case 7:
-                        SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = value1 - value2 };
+                        SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { value = value1 - value2 };
                         break;
 
                 }
             }
             else
             {
-                double value1 = SolvingTree[SolvingTree[indexToSolve].children1].volume ?? 0;
-                SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { volume = -value1 };
+                double value1 = SolvingTree[SolvingTree[indexToSolve].children1].value ?? 0;
+                SolvingTree[indexToSolve] = SolvingTree[indexToSolve] with { value = -value1 };
             }
 
         }
     }
     foreach (var item in SolvingTree)
     {
-        Console.WriteLine($"parent: {item.parent}, operation: {item.operation}, index: {item.index}, children1: {item.children1}, children2: {item.children2}, expression: {item.expression}, volume: {item.volume}");
+        Console.WriteLine($"parent: {item.parent}, operation: {item.operation}, index: {item.index}, children1: {item.children1}, children2: {item.children2}, expression: {item.expression}, value: {item.value}");
     }
 
-    return SolvingTree[0].volume ?? 000;
+    return SolvingTree[0].value ?? 000;
 }
 
 //here we are getting index of operations and operations type
@@ -323,7 +323,7 @@ static (int index, int priority) CGetTheWeekestOperation(List<(int index, int pr
         return (firstIndex, newPriority);
     }
 
-    if (operationsIndexNew[0].priority == -1 || operationsIndexNew.Count() == 1 || operationsIndexNew[0].index == operationsIndexNew.Min(i => i.index))
+    if (operationsIndexNew[0].priority == -1 || operationsIndexNew.Count() == 1 || operationsIndexNew[0].index == operationsIndexNew.Min(i => i.index)/*operationsIndexNew[0].index == operationsIndexNew.Where(i => i.priority == operationsIndexNew[0].priority).Min(i => i.index)*/)
     {
         return (operationsIndexNew[0].index, operationsIndexNew[0].priority);
     }
@@ -335,7 +335,16 @@ static (int index, int priority) CGetTheWeekestOperation(List<(int index, int pr
         .Max(t => t.index)).priority;
         if (nextPriority == 2 && operationsIndexNew[0].priority == 3)
         {
-            return (operationsIndexNew.First(i => i.index == operationsIndexNew.Where(t => t.index < operationsIndexNew[0].index).Max(t => t.index)).index, operationsIndexNew.First(i => i.index == operationsIndexNew.Where(t => t.index < operationsIndexNew[0].index).Max(t => t.index)).priority);
+            int previousIndex = operationsIndexNew[0].index;
+            while (operationsIndexNew.Where(t => t.index < nextIndex).Any() && operationsIndexNew.First(i => i.index == operationsIndexNew.Where(t => t.index < nextIndex).Max(t => t.index)).priority == 2)
+            {
+                previousIndex = nextIndex;
+                nextPriority = operationsIndexNew.First(i => i.index == operationsIndexNew.Where(t => t.index < nextIndex)
+                .Max(t => t.index)).priority;
+                nextIndex = operationsIndexNew.Where(t => t.index < nextIndex)
+                .Max(t => t.index);   
+            }
+            return (operationsIndexNew.First(i => i.index == operationsIndexNew.Where(t => t.index < previousIndex).Max(t => t.index)).index, operationsIndexNew.First(i => i.index == operationsIndexNew.Where(t => t.index < previousIndex).Max(t => t.index)).priority);
         }
         else
         {
