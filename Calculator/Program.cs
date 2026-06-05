@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-Calculator("2**3**-5**5**-2**-4**6");
+Calculator("728+12**3/2/18");
 //Console.WriteLine(RemoveBreckets("(((((2+2)))))"));
 static void Calculator(string input)
 {
@@ -317,6 +317,13 @@ static (int index, int priority) CGetTheWeekestOperation(List<(int index, int pr
     if ((operationsIndexNew[0].priority == 6 || operationsIndexNew[0].priority == 7))
     {
         int firstIndex = operationsIndexNew.Where(t => t.priority == 7 || t.priority == 6).Max(t => t.index);
+        int newPriority = operationsIndexNew.First(i => i.index == firstIndex).priority;
+        return (firstIndex, newPriority);
+    }
+
+    if ((operationsIndexNew[0].priority == 4 || operationsIndexNew[0].priority == 5))
+    {
+        int firstIndex = operationsIndexNew.Where(t => t.priority == 5 || t.priority == 4).Max(t => t.index);
         int newPriority = operationsIndexNew.First(i => i.index == firstIndex).priority;
         return (firstIndex, newPriority);
     }
